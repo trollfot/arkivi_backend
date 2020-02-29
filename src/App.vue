@@ -7,7 +7,7 @@
             <router-link to="/login">Login</router-link>
           </li>
           <li v-if="user.authenticated">
-            <router-link to="/personal">Personal info</router-link>
+            <router-link to="/spectacles">Spectacles</router-link>
           </li>
           <li v-if="user.authenticated" @click="logout()">
             <router-link to="/login">Logout</router-link>
@@ -39,28 +39,5 @@
 </script>
 
 <style>
-  .form {
-    text-align: left;
-    width: 600px;
-    margin: auto;
-  }
 
-  .form input {
-    margin: 10px auto;
-  }
-
-  h1 {
-    font-size: 2em;
-    text-align: center;
-    margin-top: 0
-  }
-
-  p {
-    text-align: center;
-  }
-
-  small {
-    line-height: 20px;
-    display: block;
-  }
 </style>

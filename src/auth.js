@@ -7,7 +7,7 @@ const LOGIN_URL = API_URL + 'admin/login'
 
 
 export default {
-    login_url: LOGIN_URL,
+    url_root: LOGIN_URL,
 
     user: {
         authenticated: false
@@ -21,6 +21,8 @@ export default {
         }).then((response) => {
             console.log(response.data);
             localStorage.setItem('token', response.data.token)
+            axios.defaults.headers.common['Authorization'] = (
+                `Bearer ${response.data.token}`)
 
             this.user.authenticated = true
             if(redirect) {
@@ -34,11 +36,20 @@ export default {
     logout() {
         localStorage.removeItem('token')
         this.user.authenticated = false
+        delete axios.defaults.headers.common['Authorization'];
     },
 
     checkAuth() {
         let jwt = localStorage.getItem('token')
-        this.user.authenticated = jwt ? true: false;
+        if (jwt) {
+            this.user.authenticated = true;
+            axios.defaults.headers.common['Authorization'] = (
+                `Bearer ${jwt}`)
+        } else {
+            this.user.authenticated = false;
+            delete axios.defaults.headers.common['Authorization'];
+        }
+        console.log(axios.defaults.headers.common);
     },
 
     getAuthHeader() {
