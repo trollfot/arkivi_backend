@@ -22,7 +22,7 @@
       <ul id="spectacles">
         <li v-for="(spectacle, index) in spectacles" v-bind:key="index">
           <router-link
-              :to="{name: 'presentation', params: {id: spectacle.id}}"
+              :to="{name: 'spectacle', params: {id: spectacle.id}}"
               >{{spectacle.title}}</router-link>
           <button @click="del_spectactle(spectacle.id)">Supprimer</button>
         </li>
