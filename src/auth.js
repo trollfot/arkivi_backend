@@ -49,7 +49,6 @@ export default {
             this.user.authenticated = false;
             delete axios.defaults.headers.common['Authorization'];
         }
-        console.log(axios.defaults.headers.common);
     },
 
     getAuthHeader() {

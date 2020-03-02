@@ -1,89 +1,78 @@
 <template>
   <div>
-    <h1>Spectacle</h1>
-    <h2>{{ $route.params.id }}</h2>
+    <h3>Spectacle: {{ $route.params.id }}</h3>
 
-    <div v-if="doc">
-      <h3>Résumé</h3>
-      <ckeditor :editor="editor" v-model="doc.summary"
-                :config="editorConfig"></ckeditor>
+    <ul class="nav nav-tabs">
+      <li class="nav-item">
+        <router-link
+            class="nav-link"
+            active-class="active"
+            :to="{name: 'presentation'}"
+          ><b-icon-document-text></b-icon-document-text>
+          <span class="ml-1">Présentation</span></router-link>
+      </li>
+      <li class="nav-item">
+        <router-link
+            class="nav-link"
+            active-class="active"
+          :to="{name: 'agenda'}">
+          <b-icon-clock></b-icon-clock>
+          <span class="ml-1">Agenda</span></router-link>
+      </li>
+      <li class="nav-item">
+        <router-link
+            class="nav-link"
+            active-class="active"
+          :to="{name: 'gallery'}">
+          <b-icon-images></b-icon-images>
+          <span class="ml-1">Photos</span></router-link>
+      </li>
+      <li class="nav-item">
+        <router-link
+            class="nav-link"
+            active-class="active"
+          :to="{name: 'files'}">
+          <b-icon-download></b-icon-download>
+          <span class="ml-1">Fichiers</span></router-link>
+      </li>
+    </ul>
 
-      <h3>Details</h3>
-      <ckeditor :editor="editor" v-model="doc.presentation"
-                :config="editorConfig"></ckeditor>
-
-       <button @click="update">Sauver</button>
+    <div class="p-3 bg-white border-right border-bottom border-left">
+       <router-view @update="$emit('update')"></router-view>
     </div>
 
-    <nav class="navbar navbar-default">
-      <div class="container">
-        <ul class="nav navbar-nav">
-          <li>
-            <router-link :to="{name: 'agenda'}">Agenda</router-link>
-          </li>
-          <li>
-            <router-link :to="{name: 'gallery'}">Photos</router-link>
-          </li>
-          <li>
-            <router-link :to="{name: 'files'}">Fichiers</router-link>
-          </li>
-        </ul>
-      </div>
-    </nav>
-
-    <div class="container">
-      <router-view></router-view>
+    <div class="d-flex justify-content-end mt-4">
+      <b-button @click="confirm_delete"
+                variant="danger">
+        Effacer
+      </b-button>
     </div>
-
   </div>
 </template>
 
 <script>
-import spectacles_service from '../spectacles'
-import ClassicEditor from '@ckeditor/ckeditor5-build-classic';
-import '@ckeditor/ckeditor5-build-classic/build/translations/fr';
-
-
 export default {
-    beforeRouteUpdate (to, from, next) {
-        this.load(to.params.id)
-        next()
-    },
-    data() {
-        return {
-            id: 'loading',
-            doc: {},
-            editor: ClassicEditor,
-            editorConfig: {
-                language: 'fr'
-            }
-        }
-    },
     methods: {
-        load(id) {
-            spectacles_service.get_spectacle(id).then(
-                (response) => {
-                    this.doc = response.data;
-                },
-                (response) => {
-                    console.log('FATAL ERROR', response);
-                }
-            )
-        },
-        update() {
-            spectacles_service.update_spectacle(
-                this.$route.params.id, this.doc).then(
-                    () => {
-                        console.log('updated')
-                    },
-                    (response) => {
-                        console.log('FATAL ERROR', response);
+        confirm_delete() {
+            this.$bvModal.msgBoxConfirm(
+                "Cette action est irrévocable.", {
+                    title: `Suppression de '${this.$route.params.id}'`,
+                    okVariant: 'danger',
+                    okTitle: 'Confirmer',
+                    cancelTitle: 'Annuler',
+                    footerClass: 'p-2',
+                    hideHeaderClose: true,
+                    centered: true
+                })
+                .then(value => {
+                    if (value) {
+                        this.$emit('delete', this.$route.params.id);
                     }
-                )
+                })
+                .catch(() => {
+                    // An error occurred
+                })
         }
-    },
-    created() {
-        this.load(this.$route.params.id);
     }
 }
 </script>
