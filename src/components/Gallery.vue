@@ -105,7 +105,8 @@
         <b-list-group-item
             :key="index"
             v-for="(file, index) in folderlisting">
-          {{ file.name }}
+          <a href="#"
+             @click.prevent="download(file.name)">{{ file.name }}</a>
         </b-list-group-item>
       </b-list-group>
     </div>
@@ -137,6 +138,12 @@ export default {
         }
     },
     methods: {
+        download(filename) {
+            spectacles_service.download(
+                this.$route.params.id,
+                'gallery',
+                filename);
+        },
         load(id) {
             spectacles_service.list_folder(id, 'gallery').then(
                 (response) => {
