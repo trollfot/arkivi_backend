@@ -101,7 +101,13 @@
       </div>
     </div>
     <div class="col-4">
-      toto
+      <b-list-group>
+        <b-list-group-item
+            :key="index"
+            v-for="(file, index) in folderlisting">
+          {{ file.name }}
+        </b-list-group-item>
+      </b-list-group>
     </div>
   </div>
 </div>
@@ -111,32 +117,59 @@
 import FileUpload from 'vue-upload-component'
 import spectacles_service from '../spectacles'
 import auth from '../auth'
+import slugify from 'slugify'
+
 
 export default {
+    beforeRouteUpdate (to, from, next) {
+        this.load(to.params.id)
+        next()
+    },
     components: {
         FileUpload,
     },
     data() {
         return {
             files: [],
+            folderlisting: [],
             url: `${spectacles_service.url_root}/${this.$route.params.id}/gallery`,
             headers: auth.getAuthHeader()
         }
     },
     methods: {
+        load(id) {
+            spectacles_service.list_folder(id, 'gallery').then(
+                (response) => {
+                    this.folderlisting = response.data;
+                },
+                (response) => {
+                    console.log('FATAL ERROR', response);
+                }
+            )
+        },
         inputFilter(newFile, oldFile) {
             if (newFile && (!oldFile || newFile.file !== oldFile.file)) {
+                newFile.name = slugify(
+                    newFile.name, {remove: /[*+~()'"!:@]/g});
+                newFile.data['name'] = newFile.name;
                 newFile.blob = ''
                 let URL = window.URL || window.webkitURL
                 if (URL && URL.createObjectURL) {
                     newFile.blob = URL.createObjectURL(newFile.file)
                 }
-                newFile.thumb = ''
-                if (newFile.blob && newFile.type.substr(0, 6) === 'image/') {
-                    newFile.thumb = newFile.blob
+              newFile.thumb = ''
+                if (newFile.blob) {
+                  newFile.thumb = newFile.blob
                 }
             }
+            if (newFile.success) {
+                this.folderlisting.push(
+                    {name: newFile.name, size: newFile.size});
+            }
         },
+    },
+    created() {
+        this.load(this.$route.params.id);
     }
 }
 </script>

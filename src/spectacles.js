@@ -40,6 +40,10 @@ export default {
         return axios.get(`${SPECTACLES_URL}/${id}/agenda`);
     },
 
+    list_folder(id, folder) {
+        return axios.get(`${SPECTACLES_URL}/${id}/${folder}`);
+    },
+
     add_event(id, event) {
         return axios.post(`${SPECTACLES_URL}/${id}/agenda`, event, {
             headers: {

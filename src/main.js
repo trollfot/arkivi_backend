@@ -20,6 +20,7 @@ import {
 import en from "vee-validate/dist/locale/fr.json";
 import * as rules from "vee-validate/dist/rules";
 import './assets/custom.scss'
+import axios from 'axios'
 
 localize("en", en);
 
@@ -45,9 +46,6 @@ Vue.use(IconsPlugin)
 Vue.use(CKEditor);
 Vue.use(VueRouter)
 Vue.config.productionTip = false
-
-// Check the users auth status when the app starts
-auth.checkAuth()
 
 const routes = [
     {
@@ -105,7 +103,6 @@ router.beforeEach((to, from, next) => {
     }
 });
 
-
 Vue.filter('formatSize', function (size) {
     if (size > 1024 * 1024 * 1024 * 1024) {
         return (size / 1024 / 1024 / 1024 / 1024).toFixed(2) + ' TB'
@@ -118,6 +115,21 @@ Vue.filter('formatSize', function (size) {
     }
     return size.toString() + ' B'
 })
+
+axios.interceptors.response.use(
+    (response) => {
+        return response
+    },
+    (error) => {
+        if (error.response.status === 401) {
+            auth.logout();
+            router.push('/');
+        }
+    }
+)
+
+auth.checkAuth()
+
 
 new Vue({
     render: h => h(App),

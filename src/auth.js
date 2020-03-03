@@ -19,7 +19,6 @@ export default {
                 'Content-Type': 'application/json'
             }
         }).then((response) => {
-            console.log(response.data);
             localStorage.setItem('token', response.data.token)
             axios.defaults.headers.common['Authorization'] = (
                 `Bearer ${response.data.token}`)

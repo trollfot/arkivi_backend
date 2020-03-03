@@ -9,7 +9,7 @@
         <b-form-group
             id="title" label="Titre du spectacle" label-for="title">
           <b-form-input
-              type="title"
+              type="text"
               :state="getValidationState(validationContext)"
               v-model="doc.title" />
           <b-form-invalid-feedback id="date-live-feedback">
