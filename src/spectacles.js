@@ -1,64 +1,73 @@
 import axios from 'axios'
 
 
-const API_URL = 'http://kraft.novareto.de:9999/'
-const SPECTACLES_URL = API_URL + 'admin/spectacles'
+class Service {
 
+    constructor(api_url='', static_url='', web_url='') {
+        this.api_url = api_url;
+        this.static_url = static_url;
+        this.web_url = web_url;
+    }
 
-export default {
-    url_root: SPECTACLES_URL,
+    get url () {
+        return `${this.api_url}/spectacles`;
+    }
 
     list() {
-        return axios.get(SPECTACLES_URL);
-    },
+        return axios.get(this.url);
+    }
 
     create_spectacle(spectacle) {
-        return axios.post(SPECTACLES_URL, spectacle, {
+        return axios.post(this.url, spectacle, {
             headers: {
                 'Content-Type': 'application/json'
             }
         });
-    },
+    }
 
     delete_spectacle(id) {
-        return axios.delete(`${SPECTACLES_URL}/${id}`);
-    },
+        return axios.delete(`${this.url}/${id}`);
+    }
 
     update_spectacle(id, spectacle) {
-        return axios.patch(`${SPECTACLES_URL}/${id}`, spectacle, {
+        return axios.patch(`${this.url}/${id}`, spectacle, {
             headers: {
                 'Content-Type': 'application/json'
             }
         });
-    },
+    }
 
     get_spectacle(id) {
-        return axios.get(`${SPECTACLES_URL}/${id}`);
-    },
+        return axios.get(`${this.url}/${id}`);
+    }
 
     list_events(id) {
-        return axios.get(`${SPECTACLES_URL}/${id}/agenda`);
-    },
+        return axios.get(`${this.url}/${id}/agenda`);
+    }
 
     list_folder(id, folder) {
-        return axios.get(`${SPECTACLES_URL}/${id}/${folder}`);
-    },
+        return axios.get(`${this.url}/${id}/${folder}`);
+    }
 
     add_event(id, event) {
-        return axios.post(`${SPECTACLES_URL}/${id}/agenda`, event, {
+        return axios.post(`${this.url}/${id}/agenda`, event, {
             headers: {
                 'Content-Type': 'application/json'
             }
         });
-    },
+    }
 
     delete_event(id, date) {
-        return axios.delete(`${SPECTACLES_URL}/${id}/agenda/${date}`);
-    },
+        return axios.delete(`${this.url}/${id}/agenda/${date}`);
+    }
+
+    delete_file(id, folder, filename) {
+        return axios.delete(`${this.url}/${id}/${folder}/${filename}`);
+    }
 
     download(id, folder, filename) {
         axios({
-            url: `${SPECTACLES_URL}/${id}/${folder}/${filename}`,
+            url: `${this.url}/${id}/${folder}/${filename}`,
             method: 'GET',
             responseType: 'blob', // important
         }).then((response) => {
@@ -72,3 +81,5 @@ export default {
         });
     }
 }
+
+export default new Service()

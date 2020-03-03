@@ -1,6 +1,7 @@
 class Show {
-    constructor(id='', title='', summary='', presentation='') {
+    constructor(id='', title='', description='', summary='', presentation='') {
         this.id = id;
+        this.description = description;
         this.title = title;
         this.summary = summary;
         this.presentation = presentation;

@@ -8,7 +8,7 @@ import Agenda from './components/Agenda.vue'
 import Files from './components/Files.vue'
 import Gallery from './components/Gallery.vue'
 import VueRouter from 'vue-router'
-import auth from './auth'
+import auth_service from './auth'
 import CKEditor from '@ckeditor/ckeditor5-vue';
 import { BootstrapVue, IconsPlugin } from 'bootstrap-vue'
 import {
@@ -21,6 +21,7 @@ import en from "vee-validate/dist/locale/fr.json";
 import * as rules from "vee-validate/dist/rules";
 import './assets/custom.scss'
 import axios from 'axios'
+import spectacles_service from './spectacles'
 
 localize("en", en);
 
@@ -46,6 +47,16 @@ Vue.use(IconsPlugin)
 Vue.use(CKEditor);
 Vue.use(VueRouter)
 Vue.config.productionTip = false
+
+
+const configElement = document.getElementById('config');
+const config = JSON.parse(configElement.innerHTML);
+
+auth_service.api_url = config.api;
+spectacles_service.api_url = config.api;
+spectacles_service.static_url = config.static;
+spectacles_service.web_url = config.web;
+
 
 const routes = [
     {
@@ -96,7 +107,7 @@ router.beforeEach((to, from, next) => {
     const publicPages = ['/login'];
     const authRequired = !publicPages.includes(to.path);
 
-    if (authRequired && !auth.user.authenticated) {
+    if (authRequired && !auth_service.user.authenticated) {
         next('/login');
     } else {
         next();
@@ -120,15 +131,22 @@ axios.interceptors.response.use(
     (response) => {
         return response
     },
-    (error) => {
-        if (error.response.status === 401) {
-            auth.logout();
-            router.push('/');
+    (result) => {
+        if (result.response === undefined) {
+            console.log('Network error.');
+            throw 'This needs to fail'
+        } else {
+            console.log(result.response);
+            if (result.response.status === 401) {
+                auth_service.logout();
+                router.push('/');
+            }
         }
+        return result
     }
 )
 
-auth.checkAuth()
+auth_service.checkAuth()
 
 
 new Vue({

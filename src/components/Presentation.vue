@@ -12,7 +12,23 @@
               type="text"
               :state="getValidationState(validationContext)"
               v-model="doc.title" />
-          <b-form-invalid-feedback id="date-live-feedback">
+          <b-form-invalid-feedback id="title-live-feedback">
+            {{ validationContext.errors[0] }}
+          </b-form-invalid-feedback>
+        </b-form-group>
+      </validation-provider>
+      <validation-provider
+          name="description"
+          :rules="{ required: true }"
+          v-slot="validationContext">
+        <b-form-group
+            id="description" label-for="description"
+            label="Description du spectacle">
+          <b-form-textarea
+              placeholder="Texte d'accroche"
+              :state="getValidationState(validationContext)"
+              v-model="doc.description"></b-form-textarea>
+          <b-form-invalid-feedback id="description-live-feedback">
             {{ validationContext.errors[0] }}
           </b-form-invalid-feedback>
         </b-form-group>

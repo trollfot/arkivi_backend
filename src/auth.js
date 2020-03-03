@@ -2,19 +2,17 @@ import { router } from './main';
 import axios from 'axios'
 
 
-const API_URL = 'http://kraft.novareto.de:9999/'
-const LOGIN_URL = API_URL + 'admin/login'
+class Service {
 
-
-export default {
-    url_root: LOGIN_URL,
-
-    user: {
-        authenticated: false
-    },
+    constructor(api_url='') {
+        this.api_url = api_url;
+        this.user = {
+            authenticated: false
+        }
+    }
 
     login(context, creds, redirect) {
-        axios.post(LOGIN_URL, creds, {
+        axios.post(`${this.api_url}/login`, creds, {
             headers: {
                 'Content-Type': 'application/json'
             }
@@ -30,13 +28,13 @@ export default {
         }, (response) => {
             console.log(response);
         })
-    },
+    }
 
     logout() {
         localStorage.removeItem('token')
         this.user.authenticated = false
         delete axios.defaults.headers.common['Authorization'];
-    },
+    }
 
     checkAuth() {
         let jwt = localStorage.getItem('token')
@@ -48,7 +46,7 @@ export default {
             this.user.authenticated = false;
             delete axios.defaults.headers.common['Authorization'];
         }
-    },
+    }
 
     getAuthHeader() {
         return {
@@ -56,3 +54,6 @@ export default {
         }
     }
 }
+
+
+export default new Service()

@@ -43,11 +43,11 @@
         <table class="table table-hover">
           <thead>
             <tr>
-              <th>Thumb</th>
-              <th>Name</th>
-              <th>Size</th>
-              <th>Speed</th>
-              <th>Status</th>
+              <th>Miniature</th>
+              <th>Nom</th>
+              <th>Taille</th>
+              <th>Vitesse</th>
+              <th>Statut</th>
               <th>Action</th>
             </tr>
           </thead>
@@ -56,7 +56,7 @@
               <td>
                 <img v-if="file.thumb"
                      :src="file.thumb" width="40" height="auto" />
-                <span v-else>No Image</span>
+                <span v-else>Pas d'image</span>
               </td>
               <td>
                 <div class="filename">
@@ -104,9 +104,14 @@
       <b-list-group>
         <b-list-group-item
             :key="index"
+            class="d-flex justify-content-between align-items-center"
             v-for="(file, index) in folderlisting">
           <a href="#"
              @click.prevent="download(file.name)">{{ file.name }}</a>
+          <a href="#"
+             class="text-danger"
+             @click.prevent="remove(file.name)"
+             ><b-icon-trash></b-icon-trash></a>
         </b-list-group-item>
       </b-list-group>
     </div>
@@ -133,7 +138,7 @@ export default {
         return {
             files: [],
             folderlisting: [],
-            url: `${spectacles_service.url_root}/${this.$route.params.id}/gallery`,
+            url: `${spectacles_service.url}/${this.$route.params.id}/gallery`,
             headers: auth.getAuthHeader()
         }
     },
@@ -143,6 +148,34 @@ export default {
                 this.$route.params.id,
                 'gallery',
                 filename);
+        },
+        remove(filename) {
+            this.$bvModal.msgBoxConfirm(
+                "Cette action est irrévocable.", {
+                    title: `Suppression de '${filename}'`,
+                    okVariant: 'danger',
+                    okTitle: 'Confirmer',
+                    cancelTitle: 'Annuler',
+                    footerClass: 'p-2',
+                    hideHeaderClose: true,
+                    centered: true
+                })
+                .then(value => {
+                    if (value) {
+                        spectacles_service.delete_file(
+                            this.$route.params.id,
+                            'gallery',
+                            filename).then(
+                                () => {
+                                    this.folderlisting = this.folderlisting.filter(
+                                        (info) => info.name != filename
+                                    );
+                                })
+                    }
+                })
+                .catch(() => {
+                    // An error occurred
+                })
         },
         load(id) {
             spectacles_service.list_folder(id, 'gallery').then(
