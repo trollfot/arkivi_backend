@@ -76,7 +76,7 @@
               :key="index"
               tag="li"
               class="nav-item"
-              v-for="(spectacle, index) in spectacles"
+              v-for="(spectacle, index) in spectacles.contents"
               active-class="active"
               :to="{name: 'spectacle', params: {id: spectacle.id}}"
               >
@@ -95,8 +95,7 @@
     <article role="show"
              class="container-fluid bg-light p-4 mb-3 border border-top-0">
       <router-view
-          @delete="remove_show"
-          @update="list"></router-view>
+          @update="spectacles.list()"></router-view>
     </article>
 
   </section>
@@ -104,71 +103,45 @@
 </template>
 
 <script>
-import { router } from '../main';
-import { Show } from '../models'
-import spectacles_service from '../spectacles'
+import { Folder, Show } from '../models'
 
 export default {
     data() {
+        const spectacles = new Folder({
+            id: 'spectacles', content: Show, bound: true
+        });
         return {
-            spectacles: [],
+            spectacles: spectacles,
             errors: {
                 'add-show': '',
             },
-            spectacle: new Show()
+            spectacle: spectacles.spawn()
         }
     },
     methods: {
         getValidationState({ dirty, validated, valid = null }) {
             return dirty || validated ? valid : null;
         },
-        list() {
-            spectacles_service.list().then(
-                (response) => {
-                    this.spectacles = response.data;
-                },
-                (response) => {
-                    console.log('FATAL ERROR', response);
-                }
-            )
-        },
-        remove_show(id) {
-            spectacles_service.delete_spectacle(id).then(
-                () => {
-                    this.list();
-                    router.push('/spectacles');
-                },
-                (response) => {
-                    console.log('Error deleting', response);
-                }
-            )
-        },
         reset() {
             this.$bvModal.hide('add-show');
-            this.spectacle = new Show();
+            this.spectacle = this.spectacles.spawn();
             this.$nextTick(() => {
                 this.$refs.observer.reset();
             });
         },
-        add_spectacle() {
-            spectacles_service.create_spectacle(this.spectacle).then(
-                () => {
-                    this.reset();
-                    this.list();
-                },
-                (error) => {
-                    if (error.response) {
-                        alert(error.response);
-                    } else {
-                        this.errors['add-show'] = (
-                            "Une erreur est survenue lors de l'ajout.")
-                    }
-                }
-            )
+        async add_spectacle() {
+            const success = await this.spectacle.create();
+            if (success) {
+                this.reset();
+                this.list();
+            } else {
+                this.errors['add-show'] = (
+                    "Une erreur est survenue lors de l'ajout.")
+            }
         }
     },
     created() {
-        this.list();
+        this.spectacles.list();
     }
 }
 </script>

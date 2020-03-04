@@ -24,7 +24,7 @@
                   v-if="!$refs.upload || !$refs.upload.active"
                   @click.prevent="$refs.upload.active = true">
           <b-icon-upload></b-icon-upload>
-          <span class="ml-1">Commencer l'envoi</span>
+          <span class="ml-1">Commencer un envoi</span>
         </b-button>
 
         <b-button variant="danger" class="mt-2"
@@ -107,10 +107,11 @@
             class="d-flex justify-content-between align-items-center"
             v-for="(file, index) in folderlisting">
           <a href="#"
-             @click.prevent="download(file.name)">{{ file.name }}</a>
+@click.prevent="file.download()"
+    >{{ file.name }}</a>
           <a href="#"
              class="text-danger"
-             @click.prevent="remove(file.name)"
+             @click.prevent="file.remove()"
              ><b-icon-trash></b-icon-trash></a>
         </b-list-group-item>
       </b-list-group>
@@ -121,14 +122,13 @@
 
 <script>
 import FileUpload from 'vue-upload-component'
-import spectacles_service from '../spectacles'
-import auth from '../auth'
+import { File, Folder } from '../spectacles'
 import slugify from 'slugify'
 
 
 export default {
     beforeRouteUpdate (to, from, next) {
-        this.load(to.params.id)
+        this.folder.list_content();
         next()
     },
     components: {
@@ -136,23 +136,19 @@ export default {
     },
     data() {
         return {
-            files: [],
-            folderlisting: [],
-            url: `${spectacles_service.url}/${this.$route.params.id}/gallery`,
-            headers: auth.getAuthHeader()
+            folder: new Folder({
+                root_url: `${this.url}/${this.$route.params.id}`,
+                name: 'gallery',
+                content: File
+            }),
+            files: []
         }
     },
     methods: {
-        download(filename) {
-            spectacles_service.download(
-                this.$route.params.id,
-                'gallery',
-                filename);
-        },
-        remove(filename) {
+        remove(file) {
             this.$bvModal.msgBoxConfirm(
                 "Cette action est irrévocable.", {
-                    title: `Suppression de '${filename}'`,
+                    title: `Suppression de '${file.name}'`,
                     okVariant: 'danger',
                     okTitle: 'Confirmer',
                     cancelTitle: 'Annuler',
@@ -162,30 +158,13 @@ export default {
                 })
                 .then(value => {
                     if (value) {
-                        spectacles_service.delete_file(
-                            this.$route.params.id,
-                            'gallery',
-                            filename).then(
-                                () => {
-                                    this.folderlisting = this.folderlisting.filter(
-                                        (info) => info.name != filename
-                                    );
-                                })
+                        file.remove();
+                        this.folder.list_content();
                     }
                 })
                 .catch(() => {
                     // An error occurred
                 })
-        },
-        load(id) {
-            spectacles_service.list_folder(id, 'gallery').then(
-                (response) => {
-                    this.folderlisting = response.data;
-                },
-                (response) => {
-                    console.log('FATAL ERROR', response);
-                }
-            )
         },
         inputFilter(newFile, oldFile) {
             if (newFile && (!oldFile || newFile.file !== oldFile.file)) {
@@ -209,7 +188,7 @@ export default {
         },
     },
     created() {
-        this.load(this.$route.params.id);
+        this.folder.list_content();
     }
 }
 </script>

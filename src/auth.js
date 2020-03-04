@@ -1,24 +1,43 @@
-import { router } from './main';
-import axios from 'axios'
+import { router } from './router';
 
 
-class Service {
+class AuthService {
 
-    constructor(api_url='') {
-        this.api_url = api_url;
+    constructor($http) {
+        this.$http = $http
         this.user = {
             authenticated: false
         }
+        this.checkAuth();
+
+        // Adding the intercepting of 401 on our HTTP client
+        this.$http.interceptors.response.use(
+            (response) => {
+                return response
+            },
+            (result) => {
+                if (result.response === undefined) {
+                    throw 'Fatal network error.'
+                } else {
+                    console.log(result.response);
+                    if (result.response.status === 401) {
+                        this.logout();
+                        router.push('/');
+                    }
+                }
+                return result
+            }
+        )
     }
 
-    login(context, creds, redirect) {
-        axios.post(`${this.api_url}/login`, creds, {
+    login(creds, redirect) {
+        this.$http.post(`${this.api_url}/login`, creds, {
             headers: {
                 'Content-Type': 'application/json'
             }
         }).then((response) => {
             localStorage.setItem('token', response.data.token)
-            axios.defaults.headers.common['Authorization'] = (
+            this.$http.defaults.headers.common['Authorization'] = (
                 `Bearer ${response.data.token}`)
 
             this.user.authenticated = true
@@ -33,18 +52,19 @@ class Service {
     logout() {
         localStorage.removeItem('token')
         this.user.authenticated = false
-        delete axios.defaults.headers.common['Authorization'];
+        delete this.$http.defaults.headers.common['Authorization'];
+        router.push('/login');
     }
 
     checkAuth() {
         let jwt = localStorage.getItem('token')
         if (jwt) {
             this.user.authenticated = true;
-            axios.defaults.headers.common['Authorization'] = (
+            this.$http.defaults.headers.common['Authorization'] = (
                 `Bearer ${jwt}`)
         } else {
             this.user.authenticated = false;
-            delete axios.defaults.headers.common['Authorization'];
+            delete this.$http.defaults.headers.common['Authorization'];
         }
     }
 
@@ -56,4 +76,9 @@ class Service {
 }
 
 
-export default new Service()
+export default {
+    install (Vue, options) {
+        const { $http } = options
+        Vue.prototype.$auth = new AuthService($http);
+    }
+}

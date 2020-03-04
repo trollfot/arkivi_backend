@@ -5,11 +5,11 @@
        >Arkivi: administration</a>
     <ul class="navbar-nav px-3">
       <router-link tag="li" to="/login" class="nav-item text-nowrap"
-                   active-class="active" v-if="!user.authenticated">
+                   active-class="active" v-if="!$auth.user.authenticated">
         <a class="nav-link">Login</a>
       </router-link>
-      <li v-if="user.authenticated" class="nav-item text-nowrap">
-        <a class="nav-link" href="#" @click="logout()"
+      <li v-if="$auth.user.authenticated" class="nav-item text-nowrap">
+        <a class="nav-link" href="#" @click="$auth.logout()"
            >Logout</a>
       </li>
     </ul>
@@ -17,7 +17,7 @@
   <div class="container-fluid">
     <div class="row">
       <nav class="col-md-2 d-sm-block d-md-block bg-light sidebar"
-           role="sidebar" v-if="user.authenticated">
+           role="sidebar" v-if="$auth.user.authenticated">
         <ul class="nav flex-column">
           <router-link
             tag="li"
@@ -40,19 +40,8 @@
 </template>
 
 <script>
-  import auth from './auth'
-
   export default {
-    data() {
-      return {
-        user: auth.user
-      }
-    },
-    methods: {
-      logout() {
-        auth.logout()
-      }
-    }
+
   }
 </script>
 
