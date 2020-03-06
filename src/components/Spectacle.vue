@@ -53,8 +53,8 @@
 <script>
 export default {
     methods: {
-        confirm_delete() {
-            this.$bvModal.msgBoxConfirm(
+        async confirm_delete() {
+            let success = await this.$bvModal.msgBoxConfirm(
                 "Cette action est irrévocable.", {
                     title: `Suppression de '${this.$route.params.id}'`,
                     okVariant: 'danger',
@@ -63,15 +63,10 @@ export default {
                     footerClass: 'p-2',
                     hideHeaderClose: true,
                     centered: true
-                })
-                .then(value => {
-                    if (value) {
-                        this.$emit('delete', this.$route.params.id);
-                    }
-                })
-                .catch(() => {
-                    // An error occurred
-                })
+                });
+            if (success) {
+                this.$emit('delete', this.$route.params.id);
+            }
         }
     }
 }

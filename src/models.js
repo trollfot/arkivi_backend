@@ -38,20 +38,39 @@ class Content {
     }
 
     @bound
-    async remove() {
+    async remove({ sync_folder=false }) {
         let res = await $http.delete(this.url);
         if([200, 202, 204, 205].contains(res.status)) {
             // unbinding
             this.bound = false;
+            if (this.folder !== null && sync_folder) {
+                if (sync_folder === 'lazy') {
+                    let index = this.folder.contents.indexOf(this);
+                    this.folder.contents.splice(index, 1);
+                } else {
+                    this.folder.list();
+                }
+            }
             return true;
         }
         return false;
     }
 
     @unbound
-    async create(data) {
+    async bind() {
+        let res = await $http.get(this.url);
+        if(res.status === 200) {
+            Object.assign(this, res.data);
+            this.bound = true;
+            return true;
+        }
+        return false;
+    }
+
+    @unbound
+    async create({ sync_folder=false }) {
         let res = await $http.put(
-            this.url, data, {
+            this.url, this, {
                 headers: {
                     'Content-Type': 'application/json'
                 }
@@ -60,6 +79,13 @@ class Content {
             // We explicitly want a 201 CREATED.
             // Anything else won't be considered.
             this.bound = true;
+            if (this.folder !== null && sync_folder) {
+                if (sync_folder === 'lazy') {
+                    this.folder.contents.push(this);
+                } else {
+                    this.folder.list();
+                }
+            }
             return true;
         }
         return false;
@@ -155,7 +181,7 @@ class Folder extends Content {
 
     constructor({content=Content, ...args}) {
         super(args)
-        this._content = content
+        this.content = content
         this.contents = []
     }
 
@@ -171,7 +197,7 @@ class Folder extends Content {
     }
 
     spawn(data) {
-        return new this._content({...data, folder: this})
+        return new this.content({...data, folder: this})
     }
 }
 

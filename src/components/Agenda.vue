@@ -1,7 +1,7 @@
 <template>
   <div>
     <b-modal id="add-event" :hide-footer="true"
-             no-enforce-focus
+             no-enforce-focus v-if="event"
              title="Ajouter un événement">
       <validation-observer ref="observer" v-slot="{ passes }">
         <b-form @submit.stop.prevent="passes(add_event)">
@@ -79,15 +79,15 @@
           Ajouter une date
         </b-button>
       </div>
-      <b-card-group deck v-if="agenda">
-        <b-card v-for="(event, index) in agenda" v-bind:key="index"
-                :header="event.date"
+      <b-card-group deck v-if="agenda.contents">
+        <b-card v-for="(ev, index) in agenda.contents" v-bind:key="index"
+                :header="ev.date"
                 header-tag="header"
-                :title="event.place"
+                :title="ev.place"
                 >
-          <b-card-text v-html="event.about"></b-card-text>
+          <b-card-text v-html="ev.about"></b-card-text>
           <template v-slot:footer>
-            <b-button @click="confirm_delete(event)"
+            <b-button @click="confirm_delete(ev)"
                       class="mt-2 mb-2" variant="danger">
               <b-icon-trash></b-icon-trash>
               Supprimer
@@ -100,24 +100,22 @@
 </template>
 
 <script>
-import { Event } from '../models'
-import spectacles_service from '../spectacles'
+import { Folder, Event } from '../models'
 import ClassicEditor from '@ckeditor/ckeditor5-build-classic';
 import '@ckeditor/ckeditor5-build-classic/build/translations/fr';
 
 
 export default {
-    beforeRouteUpdate (to, from, next) {
-        this.list(to.params.id)
-        next()
-    },
-    created() {
-        this.list(this.$route.params.id);
-    },
     data() {
+        const agenda = new Folder({
+            id: '/spectacles/${to.params.id}/agenda',
+            content: Event,
+            bound: true
+        });
+        agenda.list();
         return {
-            agenda: [],
-            event: new Event(),
+            agenda: agenda,
+            event: agenda.spawn(),
             editor: ClassicEditor,
             editorConfig: {
                 language: 'fr',
@@ -133,48 +131,18 @@ export default {
         getValidationState({ dirty, validated, valid = null }) {
             return dirty || validated ? valid : null;
         },
-        list(id) {
-            spectacles_service.list_events(id).then(
-                (response) => {
-                    this.agenda = response.data;
-                },
-                (response) => {
-                    console.log('FATAL ERROR', response);
-                }
-            )
-        },
         reset() {
             this.$bvModal.hide('add-event');
-            this.event = new Event();
+            this.event = this.agenda.spawn();
             this.$nextTick(() => {
                 this.$refs.observer.reset();
             });
         },
-        add_event() {
-            let id = this.$route.params.id;
-            spectacles_service.add_event(id, this.event).then(
-                () => {
-                    this.reset();
-                    this.list(id);
-                },
-                (response) => {
-                    console.log('Error adding', response);
-                }
-            )
+        async add_event() {
+            await this.event.create({sync_folder: true});
         },
-        del_event(date) {
-            let id = this.$route.params.id;
-            spectacles_service.delete_event(id, date).then(
-                () => {
-                    this.list(id);
-                },
-                (response) => {
-                    console.log('Error adding', response);
-                }
-            )
-        },
-        confirm_delete(event) {
-            this.$bvModal.msgBoxConfirm(
+        async confirm_delete(event) {
+            let success = await this.$bvModal.msgBoxConfirm(
                 "Cette action est irrévocable.", {
                     title: `Suppression de l'évenement du ${event.date}`,
                     okVariant: 'danger',
@@ -183,15 +151,10 @@ export default {
                     footerClass: 'p-2',
                     hideHeaderClose: true,
                     centered: true
-                })
-                .then(value => {
-                    if (value) {
-                        this.del_event(event.date);
-                    }
-                })
-                .catch(() => {
-                    // An error occurred
-                })
+                });
+            if (success) {
+                await event.remove();
+            }
         }
     }
 }

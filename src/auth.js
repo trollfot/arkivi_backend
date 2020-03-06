@@ -30,23 +30,21 @@ class AuthService {
         )
     }
 
-    login(creds, redirect) {
-        this.$http.post(`${this.api_url}/login`, creds, {
+    async login(creds, redirect) {
+        let res = await this.$http.post('login', creds, {
             headers: {
                 'Content-Type': 'application/json'
             }
-        }).then((response) => {
-            localStorage.setItem('token', response.data.token)
+        })
+        if (res.status == 200) {
+            localStorage.setItem('token', res.data.token)
             this.$http.defaults.headers.common['Authorization'] = (
-                `Bearer ${response.data.token}`)
-
+                `Bearer ${res.data.token}`)
             this.user.authenticated = true
             if(redirect) {
-                router.push(redirect)
+                router.push(redirect);
             }
-        }, (response) => {
-            console.log(response);
-        })
+        }
     }
 
     logout() {

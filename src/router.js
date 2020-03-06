@@ -56,7 +56,6 @@ const router = new VueRouter({
 router.beforeEach((to, from, next) => {
     const publicPages = ['/login'];
     const authRequired = !publicPages.includes(to.path);
-    console.log('I need stuff !')
     next(vm => {
         if (authRequired && !vm.$auth.user.authenticated) {
             return '/login';

@@ -122,13 +122,13 @@
 
 <script>
 import FileUpload from 'vue-upload-component'
-import { File, Folder } from '../spectacles'
+import { File, Folder } from '../models'
 import slugify from 'slugify'
 
 
 export default {
     beforeRouteUpdate (to, from, next) {
-        this.folder.list_content();
+        this.folder.list();
         next()
     },
     components: {
