@@ -1,7 +1,7 @@
 <template>
 <div v-if="show">
   <validation-observer ref="observer" v-slot="{ passes }">
-    <b-form @submit.stop.prevent="passes($flash(show.update()))">
+    <b-form @submit.stop.prevent="passes($flash.add(show.update()))">
       <validation-provider
           name="titre"
           :rules="{ required: true }"
@@ -86,7 +86,9 @@ export default {
         this.show = new Show({
             id: `spectacles/${this.$route.params.id}`
         });
-        this.$flash(await this.show.bind());
+        this.show.bind().then(
+            (message) => this.$flash.add(message)
+        )
     }
 }
 </script>
