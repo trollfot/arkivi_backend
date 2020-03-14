@@ -1,7 +1,7 @@
 <template>
 <div v-if="show">
   <validation-observer ref="observer" v-slot="{ passes }">
-    <b-form @submit.stop.prevent="passes(show.update)">
+    <b-form @submit.stop.prevent="passes($flash(show.update()))">
       <validation-provider
           name="titre"
           :rules="{ required: true }"
@@ -57,9 +57,9 @@ import '@ckeditor/ckeditor5-build-classic/build/translations/fr';
 
 
 export default {
-    beforeRouteUpdate (to, from, next) {
+    async beforeRouteUpdate (to, from, next) {
         this.show = new Show({id: `spectacles/${to.params.id}`});
-        this.show.bind();
+        this.$flash(await this.show.bind());
         next()
     },
     data() {
@@ -82,11 +82,11 @@ export default {
             return dirty || validated ? valid : null;
         },
     },
-    created() {
+    async created() {
         this.show = new Show({
             id: `spectacles/${this.$route.params.id}`
         });
-        this.show.bind();
+        this.$flash(await this.show.bind());
     }
 }
 </script>

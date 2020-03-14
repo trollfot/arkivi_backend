@@ -32,6 +32,13 @@
         </ul>
       </nav>
       <main role="main" class="col-md-10 ml-sm-auto mt-4">
+        <div class="messages" v-if="messages">
+          <ul>
+            <li v-for="(msg, idx) in messages" v-bind:key="idx">
+              {{ msg }}
+            </li>
+          </ul>
+        </div>
         <router-view></router-view>
       </main>
     </div>
@@ -40,9 +47,16 @@
 </template>
 
 <script>
-  export default {
+import { store } from './store'
+//import { mapState } from 'vuex'
 
-  }
+export default {
+    computed: {
+        messages: function() {
+            return store.state.messages.messages;
+        }
+    }
+}
 </script>
 
 <style>
