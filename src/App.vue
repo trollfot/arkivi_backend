@@ -21,7 +21,7 @@
         <ul class="nav flex-column">
           <router-link
             tag="li"
-            to="/spectacles"
+            to="/shows"
             class="nav-item"
             active-class="active">
             <a class="nav-link">

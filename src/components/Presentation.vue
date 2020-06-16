@@ -58,7 +58,7 @@ import '@ckeditor/ckeditor5-build-classic/build/translations/fr';
 
 export default {
     async beforeRouteUpdate (to, from, next) {
-        this.show = new Show({id: `spectacles/${to.params.id}`});
+        this.show = new Show({id: `shows/${to.params.id}`});
         this.$flash(await this.show.bind());
         next()
     },
@@ -84,7 +84,7 @@ export default {
     },
     async created() {
         this.show = new Show({
-            id: `spectacles/${this.$route.params.id}`
+            id: `shows/${this.$route.params.id}`
         });
         this.show.bind().then(
             (message) => this.$flash.add(message)

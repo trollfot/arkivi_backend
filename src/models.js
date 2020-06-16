@@ -62,15 +62,9 @@ class Content {
         if(res.status === 200) {
             Object.assign(this, res.data);
             this.bound = true;
-            return {
-                type: "info",
-                message: "object bound !"
-            }
+            return true;
         }
-        return {
-            type: "error",
-            message: "Binding failed"
-        }
+        return false;
     }
 
     @unbound

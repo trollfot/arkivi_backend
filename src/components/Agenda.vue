@@ -106,16 +106,19 @@ import '@ckeditor/ckeditor5-build-classic/build/translations/fr';
 
 
 export default {
-    data() {
-        const agenda = new Folder({
-            id: '/spectacles/${to.params.id}/agenda',
+    async beforeRouteUpdate (to, from, next) {
+        this.agenda = new Folder({
             content: Event,
-            bound: true
+            id: `shows/${to.params.id}/agenda`
         });
-        agenda.list();
+        this.$flash(await this.agenda.bind());
+        await this.agenda.list();
+        this.event = this.agenda.spawn();
+        next()
+    },
+    data() {
         return {
-            agenda: agenda,
-            event: agenda.spawn(),
+            event: null,
             editor: ClassicEditor,
             editorConfig: {
                 language: 'fr',
@@ -156,6 +159,15 @@ export default {
                 await event.remove();
             }
         }
+    },
+    async created() {
+        this.agenda = new Folder({
+            content: Event,
+            id: `shows/${this.$route.params.id}/gallery`
+        });
+        this.$flash.add(await this.agenda.bind());
+        await this.agenda.list();
+        this.event = this.agenda.spawn();
     }
 }
 </script>

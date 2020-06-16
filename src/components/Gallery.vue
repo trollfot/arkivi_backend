@@ -8,9 +8,9 @@
             ref="upload"
             class="btn btn-primary mr-2 mt-2"
             :drop-directory="true"
-            :headers="headers"
+            :headers="$auth.getAuthHeader()"
             :multiple="true"
-            :post-action="url"
+            :post-action="folder.url"
             :size="1024 * 1024 * 10"
             accept="image/*"
             drop=".drop-active"
@@ -105,7 +105,7 @@
         <b-list-group-item
             :key="index"
             class="d-flex justify-content-between align-items-center"
-            v-for="(file, index) in folderlisting">
+            v-for="(file, index) in folder.contents">
           <a href="#"
 @click.prevent="file.download()"
     >{{ file.name }}</a>
@@ -122,13 +122,14 @@
 
 <script>
 import FileUpload from 'vue-upload-component'
-import { File, Folder } from '../models'
+import { Folder, File } from '../models'
 import slugify from 'slugify'
 
 
 export default {
-    beforeRouteUpdate (to, from, next) {
-        this.folder.list();
+    async beforeRouteUpdate (to, from, next) {
+        this.folder = new Folder({content: File, id: `shows/${to.params.id}/gallery`});
+        this.$flash(await this.folder.bind());
         next()
     },
     components: {
@@ -136,11 +137,6 @@ export default {
     },
     data() {
         return {
-            folder: new Folder({
-                root_url: `${this.url}/${this.$route.params.id}`,
-                name: 'gallery',
-                content: File
-            }),
             files: []
         }
     },
@@ -159,7 +155,7 @@ export default {
                 .then(value => {
                     if (value) {
                         file.remove();
-                        this.folder.list_content();
+                        this.folder.list();
                     }
                 })
                 .catch(() => {
@@ -182,13 +178,17 @@ export default {
                 }
             }
             if (newFile.success) {
-                this.folderlisting.push(
-                    {name: newFile.name, size: newFile.size});
+                this.folder.list();
             }
         },
     },
-    created() {
-        this.folder.list_content();
+    async created() {
+        this.folder = new Folder({
+            id: `shows/${this.$route.params.id}/gallery`
+        });
+        this.folder.bind().then(
+            (message) => this.$flash.add(message)
+        )
     }
 }
 </script>

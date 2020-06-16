@@ -13,7 +13,7 @@
     </b-alert>
     <div class="p-2">
       <validation-observer ref="observer" v-slot="{ passes }">
-        <b-form @submit.stop.prevent="passes(add_spectacle)">
+        <b-form @submit.stop.prevent="passes(add_show)">
           <validation-provider
               name="identifiant"
               :rules="{ required: true, min: 3, alphanum: true }"
@@ -22,7 +22,7 @@
               <b-form-input
                   id="id"
                   name="id"
-                  v-model="spectacle.id"
+                  v-model="show.id"
                   placeholder="identifiant du spectacle"
                   :state="getValidationState(validationContext)"
                   aria-describedby="id-live-feedback"
@@ -43,7 +43,7 @@
                   id="title"
                   name="title"
                   class="mt-2 mb-2"
-                  v-model="spectacle.title"
+                  v-model="show.title"
                   placeholder="Titre du spectacle"
                   :state="getValidationState(validationContext)"
                   aria-describedby="title-live-feedback"
@@ -69,18 +69,18 @@
   </b-modal>
   <section class="inner">
     <b-navbar toggleable="sm" type="dark" variant="dark">
-      <b-navbar-toggle target="spectaclesList"></b-navbar-toggle>
-      <b-collapse id="spectaclesList" is-nav>
+      <b-navbar-toggle target="showsList"></b-navbar-toggle>
+      <b-collapse id="showsList" is-nav>
         <ul class="navbar-nav mr-auto">
           <router-link
               :key="index"
               tag="li"
               class="nav-item"
-              v-for="(spectacle, index) in spectacles.contents"
+              v-for="(show, index) in shows.contents"
               active-class="active"
-              :to="{name: 'spectacle', params: {id: spectacle.id}}"
+              :to="{name: 'show', params: {id: show.id}}"
               >
-            <a class="nav-link">{{spectacle.title}}</a>
+            <a class="nav-link">{{show.title}}</a>
           </router-link>
         </ul>
         <div class="my-2 my-lg-0">
@@ -95,7 +95,7 @@
     <article role="show"
              class="container-fluid bg-light p-4 mb-3 border border-top-0">
       <router-view
-          @update="spectacles.list()"></router-view>
+          @update="shows.list()"></router-view>
     </article>
 
   </section>
@@ -107,15 +107,15 @@ import { Folder, Show } from '../models'
 
 export default {
     data() {
-        const spectacles = new Folder({
-            id: 'spectacles', content: Show, bound: true
+        const shows = new Folder({
+            id: 'shows', content: Show, bound: true
         });
         return {
-            spectacles: spectacles,
+            shows: shows,
             errors: {
                 'add-show': '',
             },
-            spectacle: spectacles.spawn()
+            show: shows.spawn()
         }
     },
     methods: {
@@ -124,13 +124,13 @@ export default {
         },
         reset() {
             this.$bvModal.hide('add-show');
-            this.spectacle = this.spectacles.spawn();
+            this.show = this.shows.spawn();
             this.$nextTick(() => {
                 this.$refs.observer.reset();
             });
         },
-        async add_spectacle() {
-            const success = await this.spectacle.create();
+        async add_show() {
+            const success = await this.show.create();
             if (success) {
                 this.reset();
                 this.list();
@@ -141,7 +141,7 @@ export default {
         }
     },
     created() {
-        this.spectacles.list();
+        this.shows.list();
     }
 }
 </script>

@@ -3,8 +3,8 @@
 import VueRouter from 'vue-router'
 
 import Login from './components/Login.vue'
-import Spectacles from './components/Spectacles.vue'
-import Spectacle from './components/Spectacle.vue'
+import Shows from './components/Shows.vue'
+import Show from './components/Show.vue'
 import Presentation from './components/Presentation.vue'
 import Agenda from './components/Agenda.vue'
 import Files from './components/Files.vue'
@@ -18,13 +18,13 @@ const router = new VueRouter({
         component: Login
     },
     {
-        path: '/spectacles',
-        component: Spectacles,
+        path: '/shows',
+        component: Shows,
         children: [
             {
-                name: 'spectacle',
+                name: 'show',
                 path: ':id',
-                component: Spectacle,
+                component: Show,
                 children: [
                     {
                         name: 'presentation',
