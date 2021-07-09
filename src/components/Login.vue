@@ -23,22 +23,20 @@
 </template>
 
 <script>
-  import auth from '../auth'
-
-  export default {
-      data() {
-          return {
-              credentials: {
-                  'username': '',
-                  'password': ''
-              },
-              errors: {},
-          }
-      },
-      methods: {
-          submit() {
-              auth.login(this, JSON.stringify(this.credentials), '/')
-          }
-      }
-  }
+export default {
+    data() {
+        return {
+            credentials: {
+                'username': '',
+                'password': ''
+            },
+            errors: {},
+        }
+    },
+    methods: {
+        submit() {
+            this.$auth.login(JSON.stringify(this.credentials), '/')
+        }
+    }
+}
 </script>

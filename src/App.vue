@@ -5,11 +5,11 @@
        >Arkivi: administration</a>
     <ul class="navbar-nav px-3">
       <router-link tag="li" to="/login" class="nav-item text-nowrap"
-                   active-class="active" v-if="!user.authenticated">
+                   active-class="active" v-if="!$auth.user.authenticated">
         <a class="nav-link">Login</a>
       </router-link>
-      <li v-if="user.authenticated" class="nav-item text-nowrap">
-        <a class="nav-link" href="#" @click="logout()"
+      <li v-if="$auth.user.authenticated" class="nav-item text-nowrap">
+        <a class="nav-link" href="#" @click="$auth.logout()"
            >Logout</a>
       </li>
     </ul>
@@ -17,11 +17,11 @@
   <div class="container-fluid">
     <div class="row">
       <nav class="col-md-2 d-sm-block d-md-block bg-light sidebar"
-           role="sidebar" v-if="user.authenticated">
+           role="sidebar" v-if="$auth.user.authenticated">
         <ul class="nav flex-column">
           <router-link
             tag="li"
-            to="/spectacles"
+            to="/shows"
             class="nav-item"
             active-class="active">
             <a class="nav-link">
@@ -32,6 +32,13 @@
         </ul>
       </nav>
       <main role="main" class="col-md-10 ml-sm-auto mt-4">
+        <div class="messages" v-if="messages">
+          <ul>
+            <li v-for="(msg, idx) in messages" v-bind:key="idx">
+              {{ msg }}
+            </li>
+          </ul>
+        </div>
         <router-view></router-view>
       </main>
     </div>
@@ -40,20 +47,16 @@
 </template>
 
 <script>
-  import auth from './auth'
+import { store } from './store'
+//import { mapState } from 'vuex'
 
-  export default {
-    data() {
-      return {
-        user: auth.user
-      }
-    },
-    methods: {
-      logout() {
-        auth.logout()
-      }
+export default {
+    computed: {
+        messages: function() {
+            return store.state.messages.messages;
+        }
     }
-  }
+}
 </script>
 
 <style>
