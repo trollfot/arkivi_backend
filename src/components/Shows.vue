@@ -13,7 +13,7 @@
     </b-alert>
     <div class="p-2">
       <validation-observer ref="observer" v-slot="{ passes }">
-        <b-form @submit.stop.prevent="passes(add_spectacle)">
+        <b-form @submit.stop.prevent="passes(add_show)">
           <validation-provider
               name="identifiant"
               :rules="{ required: true, min: 3, alphanum: true }"
@@ -22,7 +22,7 @@
               <b-form-input
                   id="id"
                   name="id"
-                  v-model="spectacle.id"
+                  v-model="show.id"
                   placeholder="identifiant du spectacle"
                   :state="getValidationState(validationContext)"
                   aria-describedby="id-live-feedback"
@@ -43,7 +43,7 @@
                   id="title"
                   name="title"
                   class="mt-2 mb-2"
-                  v-model="spectacle.title"
+                  v-model="show.title"
                   placeholder="Titre du spectacle"
                   :state="getValidationState(validationContext)"
                   aria-describedby="title-live-feedback"
@@ -69,18 +69,18 @@
   </b-modal>
   <section class="inner">
     <b-navbar toggleable="sm" type="dark" variant="dark">
-      <b-navbar-toggle target="spectaclesList"></b-navbar-toggle>
-      <b-collapse id="spectaclesList" is-nav>
+      <b-navbar-toggle target="showsList"></b-navbar-toggle>
+      <b-collapse id="showsList" is-nav>
         <ul class="navbar-nav mr-auto">
           <router-link
               :key="index"
               tag="li"
               class="nav-item"
-              v-for="(spectacle, index) in spectacles"
+              v-for="(show, index) in shows.contents"
               active-class="active"
-              :to="{name: 'spectacle', params: {id: spectacle.id}}"
+              :to="{name: 'show', params: {id: show.id}}"
               >
-            <a class="nav-link">{{spectacle.title}}</a>
+            <a class="nav-link">{{show.title}}</a>
           </router-link>
         </ul>
         <div class="my-2 my-lg-0">
@@ -95,8 +95,7 @@
     <article role="show"
              class="container-fluid bg-light p-4 mb-3 border border-top-0">
       <router-view
-          @delete="remove_show"
-          @update="list"></router-view>
+          @update="shows.list()"></router-view>
     </article>
 
   </section>
@@ -104,71 +103,45 @@
 </template>
 
 <script>
-import { router } from '../main';
-import { Show } from '../models'
-import spectacles_service from '../spectacles'
+import { Folder, Show } from '../models'
 
 export default {
     data() {
+        const shows = new Folder({
+            id: 'shows', content: Show, bound: true
+        });
         return {
-            spectacles: [],
+            shows: shows,
             errors: {
                 'add-show': '',
             },
-            spectacle: new Show()
+            show: shows.spawn()
         }
     },
     methods: {
         getValidationState({ dirty, validated, valid = null }) {
             return dirty || validated ? valid : null;
         },
-        list() {
-            spectacles_service.list().then(
-                (response) => {
-                    this.spectacles = response.data;
-                },
-                (response) => {
-                    console.log('FATAL ERROR', response);
-                }
-            )
-        },
-        remove_show(id) {
-            spectacles_service.delete_spectacle(id).then(
-                () => {
-                    this.list();
-                    router.push('/spectacles');
-                },
-                (response) => {
-                    console.log('Error deleting', response);
-                }
-            )
-        },
         reset() {
             this.$bvModal.hide('add-show');
-            this.spectacle = new Show();
+            this.show = this.shows.spawn();
             this.$nextTick(() => {
                 this.$refs.observer.reset();
             });
         },
-        add_spectacle() {
-            spectacles_service.create_spectacle(this.spectacle).then(
-                () => {
-                    this.reset();
-                    this.list();
-                },
-                (error) => {
-                    if (error.response) {
-                        alert(error.response);
-                    } else {
-                        this.errors['add-show'] = (
-                            "Une erreur est survenue lors de l'ajout.")
-                    }
-                }
-            )
+        async add_show() {
+            const success = await this.show.create();
+            if (success) {
+                this.reset();
+                this.list();
+            } else {
+                this.errors['add-show'] = (
+                    "Une erreur est survenue lors de l'ajout.")
+            }
         }
     },
     created() {
-        this.list();
+        this.shows.list();
     }
 }
 </script>

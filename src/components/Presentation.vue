@@ -1,7 +1,7 @@
 <template>
-<div v-if="doc">
+<div v-if="show">
   <validation-observer ref="observer" v-slot="{ passes }">
-    <b-form @submit.stop.prevent="passes(update)">
+    <b-form @submit.stop.prevent="passes($flash.add(show.update()))">
       <validation-provider
           name="titre"
           :rules="{ required: true }"
@@ -11,7 +11,7 @@
           <b-form-input
               type="text"
               :state="getValidationState(validationContext)"
-              v-model="doc.title" />
+              v-model="show.title" />
           <b-form-invalid-feedback id="title-live-feedback">
             {{ validationContext.errors[0] }}
           </b-form-invalid-feedback>
@@ -27,7 +27,7 @@
           <b-form-textarea
               placeholder="Texte d'accroche"
               :state="getValidationState(validationContext)"
-              v-model="doc.description"></b-form-textarea>
+              v-model="show.description"></b-form-textarea>
           <b-form-invalid-feedback id="description-live-feedback">
             {{ validationContext.errors[0] }}
           </b-form-invalid-feedback>
@@ -35,12 +35,12 @@
       </validation-provider>
       <div class="pt-2 pb-2">
         <h4>Résumé</h4>
-        <ckeditor :editor="editor" v-model="doc.summary"
+        <ckeditor :editor="editor" v-model="show.summary"
                    :config="editorConfig"></ckeditor>
       </div>
       <div class="pt-2 pb-2">
         <h4>Details</h4>
-        <ckeditor :editor="editor" v-model="doc.presentation"
+        <ckeditor :editor="editor" v-model="show.presentation"
                    :config="editorConfig"></ckeditor>
       </div>
       <b-button type="submit" variant="primary" class="mt-2"
@@ -51,20 +51,21 @@
 </template>
 
 <script>
-import spectacles_service from '../spectacles'
+import { Show } from '../models'
 import ClassicEditor from '@ckeditor/ckeditor5-build-classic';
 import '@ckeditor/ckeditor5-build-classic/build/translations/fr';
 
 
 export default {
-    beforeRouteUpdate (to, from, next) {
-        this.load(to.params.id)
+    async beforeRouteUpdate (to, from, next) {
+        this.show = new Show({id: `shows/${to.params.id}`});
+        this.$flash(await this.show.bind());
         next()
     },
     data() {
         return {
+            show: null,
             id: 'loading',
-            doc: {},
             editor: ClassicEditor,
             editorConfig: {
                 language: 'fr',
@@ -80,30 +81,14 @@ export default {
         getValidationState({ dirty, validated, valid = null }) {
             return dirty || validated ? valid : null;
         },
-        load(id) {
-            spectacles_service.get_spectacle(id).then(
-                (response) => {
-                    this.doc = response.data;
-                },
-                (response) => {
-                    console.log('FATAL ERROR', response);
-                }
-            )
-        },
-        update() {
-            spectacles_service.update_spectacle(
-                this.$route.params.id, this.doc).then(
-                    () => {
-                        this.$emit('update');
-                    },
-                    (response) => {
-                        console.log('FATAL ERROR', response);
-                    }
-                )
-        },
     },
-    created() {
-        this.load(this.$route.params.id);
+    async created() {
+        this.show = new Show({
+            id: `shows/${this.$route.params.id}`
+        });
+        this.show.bind().then(
+            (message) => this.$flash.add(message)
+        )
     }
 }
 </script>

@@ -8,9 +8,9 @@
             ref="upload"
             class="btn btn-primary mr-2 mt-2"
             :drop-directory="true"
-            :headers="headers"
+            :headers="$auth.getAuthHeader()"
             :multiple="true"
-            :post-action="url"
+            :post-action="folder.url"
             :size="1024 * 1024 * 10"
             accept="image/*"
             drop=".drop-active"
@@ -24,7 +24,7 @@
                   v-if="!$refs.upload || !$refs.upload.active"
                   @click.prevent="$refs.upload.active = true">
           <b-icon-upload></b-icon-upload>
-          <span class="ml-1">Commencer l'envoi</span>
+          <span class="ml-1">Commencer un envoi</span>
         </b-button>
 
         <b-button variant="danger" class="mt-2"
@@ -105,12 +105,13 @@
         <b-list-group-item
             :key="index"
             class="d-flex justify-content-between align-items-center"
-            v-for="(file, index) in folderlisting">
+            v-for="(file, index) in folder.contents">
           <a href="#"
-             @click.prevent="download(file.name)">{{ file.name }}</a>
+@click.prevent="file.download()"
+    >{{ file.name }}</a>
           <a href="#"
              class="text-danger"
-             @click.prevent="remove(file.name)"
+             @click.prevent="file.remove()"
              ><b-icon-trash></b-icon-trash></a>
         </b-list-group-item>
       </b-list-group>
@@ -121,14 +122,14 @@
 
 <script>
 import FileUpload from 'vue-upload-component'
-import spectacles_service from '../spectacles'
-import auth from '../auth'
+import { Folder, File } from '../models'
 import slugify from 'slugify'
 
 
 export default {
-    beforeRouteUpdate (to, from, next) {
-        this.load(to.params.id)
+    async beforeRouteUpdate (to, from, next) {
+        this.folder = new Folder({content: File, id: `shows/${to.params.id}/gallery`});
+        this.$flash(await this.folder.bind());
         next()
     },
     components: {
@@ -136,23 +137,14 @@ export default {
     },
     data() {
         return {
-            files: [],
-            folderlisting: [],
-            url: `${spectacles_service.url}/${this.$route.params.id}/gallery`,
-            headers: auth.getAuthHeader()
+            files: []
         }
     },
     methods: {
-        download(filename) {
-            spectacles_service.download(
-                this.$route.params.id,
-                'gallery',
-                filename);
-        },
-        remove(filename) {
+        remove(file) {
             this.$bvModal.msgBoxConfirm(
                 "Cette action est irrévocable.", {
-                    title: `Suppression de '${filename}'`,
+                    title: `Suppression de '${file.name}'`,
                     okVariant: 'danger',
                     okTitle: 'Confirmer',
                     cancelTitle: 'Annuler',
@@ -162,30 +154,13 @@ export default {
                 })
                 .then(value => {
                     if (value) {
-                        spectacles_service.delete_file(
-                            this.$route.params.id,
-                            'gallery',
-                            filename).then(
-                                () => {
-                                    this.folderlisting = this.folderlisting.filter(
-                                        (info) => info.name != filename
-                                    );
-                                })
+                        file.remove();
+                        this.folder.list();
                     }
                 })
                 .catch(() => {
                     // An error occurred
                 })
-        },
-        load(id) {
-            spectacles_service.list_folder(id, 'gallery').then(
-                (response) => {
-                    this.folderlisting = response.data;
-                },
-                (response) => {
-                    console.log('FATAL ERROR', response);
-                }
-            )
         },
         inputFilter(newFile, oldFile) {
             if (newFile && (!oldFile || newFile.file !== oldFile.file)) {
@@ -203,13 +178,17 @@ export default {
                 }
             }
             if (newFile.success) {
-                this.folderlisting.push(
-                    {name: newFile.name, size: newFile.size});
+                this.folder.list();
             }
         },
     },
-    created() {
-        this.load(this.$route.params.id);
+    async created() {
+        this.folder = new Folder({
+            id: `shows/${this.$route.params.id}/gallery`
+        });
+        this.folder.bind().then(
+            (message) => this.$flash.add(message)
+        )
     }
 }
 </script>
